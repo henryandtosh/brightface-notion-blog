@@ -244,7 +244,7 @@ module.exports = async (req, res) => {
             ${post.excerpt ? `<div class="post-excerpt">${escapeHtml(post.excerpt)}</div>` : ''}
             
             <div class="post-content">
-                ${formatContent(post.content)}
+                ${formatContent(post.content, post.excerpt)}
             </div>
             
             ${post.tags && post.tags.length > 0 ? `
@@ -302,7 +302,7 @@ function formatTime(dateString) {
     });
 }
 
-function formatContent(content) {
+function formatContent(content, excerpt) {
     if (!content || typeof content !== 'object') {
         return '<p>Content not available</p>';
     }
@@ -314,14 +314,28 @@ function formatContent(content) {
     
     // If content has blocks (Notion page structure)
     if (content.blocks && Array.isArray(content.blocks)) {
-        return content.blocks.map(block => {
+        return content.blocks.map((block, index) => {
+            // Skip the first paragraph if it matches the excerpt
+            if (index === 0 && excerpt && block.type === 'paragraph') {
+                const paragraphText = extractRichText(block.paragraph?.rich_text || []);
+                if (paragraphText && paragraphText.trim() === excerpt.trim()) {
+                    return ''; // Skip this block
+                }
+            }
             return formatNotionBlock(block);
         }).join('');
     }
     
     // If content has children (Notion page children)
     if (content.children && Array.isArray(content.children)) {
-        return content.children.map(child => {
+        return content.children.map((child, index) => {
+            // Skip the first paragraph if it matches the excerpt
+            if (index === 0 && excerpt && child.type === 'paragraph') {
+                const paragraphText = extractRichText(child.paragraph?.rich_text || []);
+                if (paragraphText && paragraphText.trim() === excerpt.trim()) {
+                    return ''; // Skip this block
+                }
+            }
             return formatNotionBlock(child);
         }).join('');
     }
