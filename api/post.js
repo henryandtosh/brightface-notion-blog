@@ -274,8 +274,7 @@ module.exports = async (req, res) => {
         
         <article class="post">
             <div class="post-header">
-                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face" 
-                     alt="Profile" class="post-profile-image">
+                ${getProfileImage(post)}
                 <h1 class="post-title">${escapeHtml(post.title)}</h1>
                 
                 <div class="post-meta">
@@ -346,6 +345,27 @@ function formatTime(dateString) {
         hour: '2-digit',
         minute: '2-digit'
     });
+}
+
+function getProfileImage(post) {
+    // Check if there's a cover image first
+    if (post.coverImage && post.coverImage.length > 0) {
+        const imageUrl = post.coverImage[0].file?.url || post.coverImage[0].external?.url;
+        if (imageUrl) {
+            return `<img src="${imageUrl}" alt="Cover" class="post-profile-image">`;
+        }
+    }
+    
+    // Check if there's an author with avatar
+    if (post.author && post.author.length > 0) {
+        const author = post.author[0];
+        if (author.avatar_url) {
+            return `<img src="${author.avatar_url}" alt="${author.name || 'Author'}" class="post-profile-image">`;
+        }
+    }
+    
+    // Use a default Brightface-themed image
+    return `<img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face" alt="Brightface Profile" class="post-profile-image">`;
 }
 
 function formatContent(content, excerpt) {
