@@ -18,8 +18,8 @@
       "use": "@vercel/node"
     },
     {
-      "src": "api/automated-content-generator.py",
-      "use": "@vercel/python"
+      "src": "api/automated-content-generator.js",
+      "use": "@vercel/node"
     }
   ],
   "routes": [
@@ -37,7 +37,7 @@
     },
     {
       "src": "/api/automated-content-generator",
-      "dest": "/api/automated-content-generator.py"
+      "dest": "/api/automated-content-generator.js"
     },
     {
       "src": "/api/(.*)",
