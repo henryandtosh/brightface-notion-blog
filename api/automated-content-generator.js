@@ -282,7 +282,7 @@ Format as JSON:
                 const scores = await this.scoreContent(article);
                 
                 // Only proceed if scores are good enough
-                if (scores.overall >= 6.0) { // Lowered threshold for testing
+                if (scores.overall >= 4.0) { // Lowered threshold for testing
                     console.log(`✅ High-scoring content found: ${scores.overall}/10`);
                     
                     // Generate blog post
