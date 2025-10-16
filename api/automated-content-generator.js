@@ -235,7 +235,7 @@ Format as JSON:
                     Name: { title: [{ text: { content: blogPost.title } }] },
                     Slug: { rich_text: [{ text: { content: slug } }] },
                     Excerpt: { rich_text: [{ text: { content: blogPost.excerpt } }] },
-                    Status: { select: { name: 'Published' } },
+                    Status: { select: { name: 'Draft' } },
                     Tags: { multi_select: blogPost.tags.map(tag => ({ name: tag })) },
                     'SEO Title': { rich_text: [{ text: { content: blogPost.seo_title } }] },
                     'SEO Description': { rich_text: [{ text: { content: blogPost.seo_description } }] },

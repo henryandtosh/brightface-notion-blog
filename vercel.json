@@ -20,6 +20,14 @@
     {
       "src": "api/automated-content-generator.js",
       "use": "@vercel/node"
+    },
+    {
+      "src": "api/draft-manager.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/admin.js",
+      "use": "@vercel/node"
     }
   ],
   "routes": [
@@ -36,8 +44,16 @@
       "dest": "/api/post.js"
     },
     {
+      "src": "/admin",
+      "dest": "/api/admin.js"
+    },
+    {
       "src": "/api/automated-content-generator",
       "dest": "/api/automated-content-generator.js"
+    },
+    {
+      "src": "/api/draft-manager",
+      "dest": "/api/draft-manager.js"
     },
     {
       "src": "/api/(.*)",
