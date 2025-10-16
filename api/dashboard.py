@@ -234,5 +234,29 @@ def generate_dashboard_html(data):
     """
 
 # Vercel expects this to be the main handler
-def main(request):
-    return handler(request)
+def handler(request):
+    """Main handler for dashboard"""
+    try:
+        # Get dashboard data
+        dashboard_data = get_dashboard_data()
+        
+        # Return HTML dashboard
+        html_content = generate_dashboard_html(dashboard_data)
+        
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'text/html',
+            },
+            'body': html_content
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in dashboard: {e}")
+        return {
+            'statusCode': 500,
+            'headers': {
+                'Content-Type': 'text/html',
+            },
+            'body': f"<h1>Error</h1><p>{str(e)}</p>"
+        }
