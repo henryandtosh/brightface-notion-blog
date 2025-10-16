@@ -20,10 +20,6 @@
     {
       "src": "api/automated-content-generator.js",
       "use": "@vercel/node"
-    },
-    {
-      "src": "api/create-test-post.js",
-      "use": "@vercel/node"
     }
   ],
   "routes": [
@@ -42,10 +38,6 @@
     {
       "src": "/api/automated-content-generator",
       "dest": "/api/automated-content-generator.js"
-    },
-    {
-      "src": "/api/create-test-post",
-      "dest": "/api/create-test-post.js"
     },
     {
       "src": "/api/(.*)",
