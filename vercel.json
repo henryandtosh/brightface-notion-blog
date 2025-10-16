@@ -24,6 +24,10 @@
   ],
   "routes": [
     {
+      "src": "/",
+      "dest": "/blog"
+    },
+    {
       "src": "/api/demo",
       "dest": "/api/demo.js"
     },
