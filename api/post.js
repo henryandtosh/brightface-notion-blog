@@ -89,25 +89,49 @@ module.exports = async (req, res) => {
         .post {
             background: white;
             border-radius: 12px;
-            padding: 3rem;
+            overflow: hidden;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .post-header {
+            background: linear-gradient(135deg, #dc2626, #ef4444);
+            color: white;
+            padding: 3rem 3rem 2rem;
+            text-align: center;
+            position: relative;
+        }
+        
+        .post-profile-image {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid white;
+            margin: 0 auto 1rem;
+            display: block;
+            object-fit: cover;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .post-body {
+            padding: 3rem;
         }
         
         .post-title {
             font-size: 2.5rem;
-            color: #1f2937;
-            margin-bottom: 1.5rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 1rem;
             line-height: 1.2;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         
         .post-meta {
             display: flex;
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-            color: #6b7280;
+            justify-content: center;
+            gap: 1rem;
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 0;
             font-size: 0.9rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid #e5e7eb;
         }
         
         .post-excerpt {
@@ -142,12 +166,28 @@ module.exports = async (req, res) => {
             margin-bottom: 1rem;
         }
         
-        .post-content ul, .post-content ol {
-            margin: 1rem 0 1rem 2rem;
+        .post-content ul {
+            margin: 1.5rem 0;
+            padding-left: 0;
+            list-style: none;
+        }
+        
+        .post-content ol {
+            margin: 1.5rem 0 1rem 2rem;
         }
         
         .post-content li {
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.75rem;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+        
+        .post-content ul li::before {
+            content: "•";
+            color: #dc2626;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
         }
         
         .post-content blockquote {
@@ -233,18 +273,24 @@ module.exports = async (req, res) => {
         </div>
         
         <article class="post">
-            <h1 class="post-title">${escapeHtml(post.title)}</h1>
-            
-            <div class="post-meta">
-                <span>📅 ${formatDate(post.publishDate || post.createdAt)}</span>
-                ${post.author ? `<span>👤 ${escapeHtml(post.author)}</span>` : ''}
-                <span>🕒 ${formatTime(post.createdAt)}</span>
+            <div class="post-header">
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face" 
+                     alt="Profile" class="post-profile-image">
+                <h1 class="post-title">${escapeHtml(post.title)}</h1>
+                
+                <div class="post-meta">
+                    <span>📅 ${formatDate(post.publishDate || post.createdAt)}</span>
+                    ${post.author ? `<span>👤 ${escapeHtml(post.author)}</span>` : ''}
+                    <span>🕒 ${formatTime(post.createdAt)}</span>
+                </div>
             </div>
             
-            ${post.excerpt ? `<div class="post-excerpt">${escapeHtml(post.excerpt)}</div>` : ''}
-            
-            <div class="post-content">
-                ${formatContent(post.content, post.excerpt)}
+            <div class="post-body">
+                ${post.excerpt ? `<div class="post-excerpt">${escapeHtml(post.excerpt)}</div>` : ''}
+                
+                <div class="post-content">
+                    ${formatContent(post.content, post.excerpt)}
+                </div>
             </div>
             
             ${post.tags && post.tags.length > 0 ? `
