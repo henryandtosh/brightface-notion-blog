@@ -32,7 +32,7 @@ class NotionBlogAPI {
                 ]
             });
 
-            return this.formatPosts(response.results);
+            return await this.formatPosts(response.results);
         } catch (error) {
             console.error('Error fetching posts:', error);
             return [];
@@ -58,7 +58,7 @@ class NotionBlogAPI {
                 return null;
             }
 
-            return this.formatPost(response.results[0]);
+            return await this.formatPost(response.results[0]);
         } catch (error) {
             console.error('Error fetching post:', error);
             return null;
@@ -68,14 +68,14 @@ class NotionBlogAPI {
     /**
      * Format multiple posts for display
      */
-    formatPosts(posts) {
-        return posts.map(post => this.formatPost(post));
+    async formatPosts(posts) {
+        return Promise.all(posts.map(post => this.formatPost(post)));
     }
 
     /**
      * Format a single post for display
      */
-    formatPost(post) {
+    async formatPost(post) {
         const properties = post.properties;
         const title = this.getPropertyValue(properties.Name, 'title');
         const slug = this.getPropertyValue(properties.Slug, 'rich_text') || this.generateSlug(title);
@@ -91,7 +91,7 @@ class NotionBlogAPI {
             seoTitle: this.getPropertyValue(properties['SEO Title'], 'rich_text'),
             seoDescription: this.getPropertyValue(properties['SEO Description'], 'rich_text'),
             coverImage: this.getPropertyValue(properties['Cover Image'], 'files'),
-            content: this.getPostContent(post.id),
+            content: await this.getPostContent(post.id),
             url: `/blog/${slug}`,
             createdAt: post.created_time,
             updatedAt: post.last_edited_time
@@ -154,54 +154,13 @@ class NotionBlogAPI {
     }
 
     /**
-     * Format Notion blocks into HTML/markdown
+     * Format Notion blocks - return raw blocks for proper formatting
      */
     formatContent(blocks) {
-        return blocks.map(block => {
-            switch (block.type) {
-                case 'paragraph':
-                    return {
-                        type: 'paragraph',
-                        content: block.paragraph.rich_text.map(text => text.plain_text).join('')
-                    };
-                case 'heading_1':
-                    return {
-                        type: 'h1',
-                        content: block.heading_1.rich_text.map(text => text.plain_text).join('')
-                    };
-                case 'heading_2':
-                    return {
-                        type: 'h2',
-                        content: block.heading_2.rich_text.map(text => text.plain_text).join('')
-                    };
-                case 'heading_3':
-                    return {
-                        type: 'h3',
-                        content: block.heading_3.rich_text.map(text => text.plain_text).join('')
-                    };
-                case 'bulleted_list_item':
-                    return {
-                        type: 'ul',
-                        content: block.bulleted_list_item.rich_text.map(text => text.plain_text).join('')
-                    };
-                case 'numbered_list_item':
-                    return {
-                        type: 'ol',
-                        content: block.numbered_list_item.rich_text.map(text => text.plain_text).join('')
-                    };
-                case 'image':
-                    return {
-                        type: 'image',
-                        url: block.image.file?.url || block.image.external?.url,
-                        caption: block.image.caption?.map(text => text.plain_text).join('') || ''
-                    };
-                default:
-                    return {
-                        type: 'unknown',
-                        content: 'Unsupported block type'
-                    };
-            }
-        });
+        return {
+            blocks: blocks,
+            children: blocks
+        };
     }
 
     /**

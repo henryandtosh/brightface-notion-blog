@@ -307,35 +307,121 @@ function formatContent(content) {
         return '<p>Content not available</p>';
     }
     
-    // This is a basic formatter - you might want to enhance this based on your Notion content structure
+    // If content has a simple text property
     if (content.text) {
         return `<p>${escapeHtml(content.text)}</p>`;
     }
     
-    if (content.blocks) {
+    // If content has blocks (Notion page structure)
+    if (content.blocks && Array.isArray(content.blocks)) {
         return content.blocks.map(block => {
-            switch (block.type) {
-                case 'paragraph':
-                    return `<p>${escapeHtml(block.text || '')}</p>`;
-                case 'heading_1':
-                    return `<h1>${escapeHtml(block.text || '')}</h1>`;
-                case 'heading_2':
-                    return `<h2>${escapeHtml(block.text || '')}</h2>`;
-                case 'heading_3':
-                    return `<h3>${escapeHtml(block.text || '')}</h3>`;
-                case 'bulleted_list_item':
-                    return `<li>${escapeHtml(block.text || '')}</li>`;
-                case 'numbered_list_item':
-                    return `<li>${escapeHtml(block.text || '')}</li>`;
-                case 'quote':
-                    return `<blockquote>${escapeHtml(block.text || '')}</blockquote>`;
-                case 'code':
-                    return `<pre><code>${escapeHtml(block.text || '')}</code></pre>`;
-                default:
-                    return `<p>${escapeHtml(block.text || '')}</p>`;
-            }
+            return formatNotionBlock(block);
         }).join('');
     }
     
+    // If content has children (Notion page children)
+    if (content.children && Array.isArray(content.children)) {
+        return content.children.map(child => {
+            return formatNotionBlock(child);
+        }).join('');
+    }
+    
+    // Try to fetch content from Notion API if we have a page ID
     return '<p>Content formatting not available</p>';
+}
+
+function formatNotionBlock(block) {
+    if (!block || !block.type) {
+        return '';
+    }
+    
+    switch (block.type) {
+        case 'paragraph':
+            const paragraphText = extractRichText(block.paragraph?.rich_text || []);
+            return paragraphText ? `<p>${paragraphText}</p>` : '';
+            
+        case 'heading_1':
+            const h1Text = extractRichText(block.heading_1?.rich_text || []);
+            return h1Text ? `<h1>${h1Text}</h1>` : '';
+            
+        case 'heading_2':
+            const h2Text = extractRichText(block.heading_2?.rich_text || []);
+            return h2Text ? `<h2>${h2Text}</h2>` : '';
+            
+        case 'heading_3':
+            const h3Text = extractRichText(block.heading_3?.rich_text || []);
+            return h3Text ? `<h3>${h3Text}</h3>` : '';
+            
+        case 'bulleted_list_item':
+            const bulletText = extractRichText(block.bulleted_list_item?.rich_text || []);
+            return bulletText ? `<li>${bulletText}</li>` : '';
+            
+        case 'numbered_list_item':
+            const numberedText = extractRichText(block.numbered_list_item?.rich_text || []);
+            return numberedText ? `<li>${numberedText}</li>` : '';
+            
+        case 'quote':
+            const quoteText = extractRichText(block.quote?.rich_text || []);
+            return quoteText ? `<blockquote>${quoteText}</blockquote>` : '';
+            
+        case 'code':
+            const codeText = extractRichText(block.code?.rich_text || []);
+            return codeText ? `<pre><code>${escapeHtml(codeText)}</code></pre>` : '';
+            
+        case 'divider':
+            return '<hr>';
+            
+        case 'image':
+            const imageUrl = block.image?.file?.url || block.image?.external?.url;
+            const imageCaption = extractRichText(block.image?.caption || []);
+            if (imageUrl) {
+                return `<figure><img src="${imageUrl}" alt="${imageCaption || ''}" style="max-width: 100%; height: auto;"><figcaption>${imageCaption}</figcaption></figure>`;
+            }
+            return '';
+            
+        case 'callout':
+            const calloutText = extractRichText(block.callout?.rich_text || []);
+            const calloutIcon = block.callout?.icon?.emoji || '💡';
+            return calloutText ? `<div class="callout"><strong>${calloutIcon}</strong> ${calloutText}</div>` : '';
+            
+        case 'toggle':
+            const toggleText = extractRichText(block.toggle?.rich_text || []);
+            return toggleText ? `<details><summary>${toggleText}</summary></details>` : '';
+            
+        default:
+            // Try to extract any rich text from unknown block types
+            const richText = extractRichText(block[block.type]?.rich_text || []);
+            return richText ? `<p>${richText}</p>` : '';
+    }
+}
+
+function extractRichText(richTextArray) {
+    if (!Array.isArray(richTextArray)) {
+        return '';
+    }
+    
+    return richTextArray.map(textObj => {
+        if (textObj.type === 'text') {
+            let content = escapeHtml(textObj.text?.content || '');
+            
+            // Apply formatting
+            if (textObj.annotations) {
+                const annotations = textObj.annotations;
+                
+                if (annotations.bold) content = `<strong>${content}</strong>`;
+                if (annotations.italic) content = `<em>${content}</em>`;
+                if (annotations.strikethrough) content = `<del>${content}</del>`;
+                if (annotations.underline) content = `<u>${content}</u>`;
+                if (annotations.code) content = `<code>${content}</code>`;
+                
+                // Handle links
+                if (textObj.text?.link?.url) {
+                    content = `<a href="${textObj.text.link.url}" target="_blank" rel="noopener">${content}</a>`;
+                }
+            }
+            
+            return content;
+        }
+        return '';
+    }).join('');
 }
