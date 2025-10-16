@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brightface Blog - Notion Integration Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f8f9fa;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #2563eb;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: #6b7280;
+            font-size: 1.1rem;
+        }
+
+        .blog-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .blog-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: transform 0.2s ease;
+        }
+
+        .blog-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .blog-card-image {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .blog-card-content {
+            padding: 1.5rem;
+        }
+
+        .blog-card h3 {
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+            font-size: 1.25rem;
+        }
+
+        .blog-card p {
+            color: #6b7280;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .blog-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.875rem;
+            color: #9ca3af;
+        }
+
+        .blog-tags {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            background: #e5e7eb;
+            color: #374151;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: #6b7280;
+        }
+
+        .error {
+            background: #fef2f2;
+            color: #dc2626;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border: 1px solid #fecaca;
+        }
+
+        .api-status {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+
+        .status-online {
+            background: #10b981;
+        }
+
+        .status-offline {
+            background: #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Brightface Blog</h1>
+            <p>Powered by Notion API Integration</p>
+        </div>
+
+        <div class="api-status">
+            <h3>
+                <span class="status-indicator status-offline" id="status-indicator"></span>
+                <span id="status-text">Checking API connection...</span>
+            </h3>
+            <p id="status-details">Connecting to Notion API...</p>
+        </div>
+
+        <div id="blog-container">
+            <div class="loading">
+                <p>📖 Loading blog posts from Notion...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:3001/api/blog';
+        
+        async function checkAPIStatus() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('status-indicator').className = 'status-indicator status-online';
+                    document.getElementById('status-text').textContent = 'API Online';
+                    document.getElementById('status-details').textContent = `Connected at ${new Date().toLocaleTimeString()}`;
+                    return true;
+                } else {
+                    throw new Error('API returned error');
+                }
+            } catch (error) {
+                document.getElementById('status-indicator').className = 'status-indicator status-offline';
+                document.getElementById('status-text').textContent = 'API Offline';
+                document.getElementById('status-details').textContent = 'Make sure the server is running on port 3001';
+                return false;
+            }
+        }
+
+        async function loadBlogPosts() {
+            const container = document.getElementById('blog-container');
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/posts`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (data.data.length === 0) {
+                        container.innerHTML = `
+                            <div class="error">
+                                <h3>📝 No Blog Posts Found</h3>
+                                <p>To see blog posts here:</p>
+                                <ul style="margin: 1rem 0; padding-left: 2rem;">
+                                    <li>Add posts to your Notion "Blog Posts" database</li>
+                                    <li>Set "Published" to true</li>
+                                    <li>Add a "Publish Date"</li>
+                                    <li>Include "Name", "Slug", and "Excerpt" fields</li>
+                                </ul>
+                            </div>
+                        `;
+                    } else {
+                        container.innerHTML = `
+                            <div class="blog-grid">
+                                ${data.data.map(post => `
+                                    <div class="blog-card">
+                                        <div class="blog-card-image">
+                                            ${post.coverImage ? 
+                                                `<img src="${post.coverImage}" alt="${post.title}" style="width: 100%; height: 100%; object-fit: cover;">` :
+                                                '📝'
+                                            }
+                                        </div>
+                                        <div class="blog-card-content">
+                                            <h3>${post.title}</h3>
+                                            <p>${post.excerpt || 'No excerpt available'}</p>
+                                            <div class="blog-meta">
+                                                <span>📅 ${new Date(post.publishDate).toLocaleDateString()}</span>
+                                                <div class="blog-tags">
+                                                    ${post.tags ? post.tags.map(tag => `<span class="tag">${tag}</span>`).join('') : ''}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `;
+                    }
+                } else {
+                    container.innerHTML = `
+                        <div class="error">
+                            <h3>❌ Error Loading Posts</h3>
+                            <p>${data.error}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                container.innerHTML = `
+                    <div class="error">
+                        <h3>❌ Connection Error</h3>
+                        <p>Could not connect to the API. Make sure the server is running.</p>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Initialize the page
+        async function init() {
+            const isOnline = await checkAPIStatus();
+            if (isOnline) {
+                await loadBlogPosts();
+            }
+        }
+
+        // Start the app
+        init();
+
+        // Refresh every 30 seconds
+        setInterval(async () => {
+            const isOnline = await checkAPIStatus();
+            if (isOnline) {
+                await loadBlogPosts();
+            }
+        }, 30000);
+    </script>
+</body>
+</html>

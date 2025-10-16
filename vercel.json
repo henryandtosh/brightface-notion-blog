@@ -1,14 +1,22 @@
 {
   "version": 2,
+  "builds": [
+    {
+      "src": "server.js",
+      "use": "@vercel/node"
+    }
+  ],
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/api/$1"
+      "dest": "/server.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/server.js"
     }
   ],
-  "functions": {
-    "api/minimal-test.py": {
-      "maxDuration": 60
-    }
+  "env": {
+    "NODE_ENV": "production"
   }
 }
