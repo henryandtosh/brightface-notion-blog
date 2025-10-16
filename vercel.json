@@ -58,7 +58,7 @@
   "crons": [
     {
       "path": "/api/automated-content-generator",
-      "schedule": "0 11 * * 1,4"
+      "schedule": "0 11 * * *"
     }
   ]
 }
