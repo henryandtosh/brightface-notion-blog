@@ -7,5 +7,5 @@ def handler(request):
         'headers': {
             'Content-Type': 'application/json',
         },
-        'body': '{"message": "Hello from Brightface Content Engine!", "status": "working"}'
+        'body': '{"message": "Hello from Brightface Content Engine!", "status": "working", "timestamp": "2024-10-16T15:45:00Z"}'
     }
