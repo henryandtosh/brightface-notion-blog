@@ -83,7 +83,7 @@ Ready to transform your professional image? Try AI headshot generation today and
                 Name: { title: [{ text: { content: testPost.title } }] },
                 Slug: { rich_text: [{ text: { content: testPost.slug } }] },
                 Excerpt: { rich_text: [{ text: { content: testPost.excerpt } }] },
-                Status: { select: { name: 'Draft' } },
+                // Status: { select: { name: 'Draft' } },
                 Tags: { multi_select: testPost.tags.map(tag => ({ name: tag })) },
                 'SEO Title': { rich_text: [{ text: { content: testPost.seoTitle } }] },
                 'SEO Description': { rich_text: [{ text: { content: testPost.seoDescription } }] },
