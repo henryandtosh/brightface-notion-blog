@@ -348,7 +348,23 @@ function formatTime(dateString) {
 }
 
 function getProfileImage(post) {
-    // Check if there's a cover image first
+    // Check if there's a page icon first
+    if (post.icon && post.icon.type === 'file') {
+        const iconUrl = post.icon.file?.url;
+        if (iconUrl) {
+            return `<img src="${iconUrl}" alt="Page Icon" class="post-profile-image">`;
+        }
+    }
+    
+    // Check if there's a page cover
+    if (post.cover && post.cover.type === 'file') {
+        const coverUrl = post.cover.file?.url;
+        if (coverUrl) {
+            return `<img src="${coverUrl}" alt="Cover" class="post-profile-image">`;
+        }
+    }
+    
+    // Check if there's a cover image property
     if (post.coverImage && post.coverImage.length > 0) {
         const imageUrl = post.coverImage[0].file?.url || post.coverImage[0].external?.url;
         if (imageUrl) {

@@ -91,6 +91,8 @@ class NotionBlogAPI {
             seoTitle: this.getPropertyValue(properties['SEO Title'], 'rich_text'),
             seoDescription: this.getPropertyValue(properties['SEO Description'], 'rich_text'),
             coverImage: this.getPropertyValue(properties['Cover Image'], 'files'),
+            icon: post.icon,
+            cover: post.cover,
             content: await this.getPostContent(post.id),
             url: `/blog/${slug}`,
             createdAt: post.created_time,
