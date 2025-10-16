@@ -364,8 +364,46 @@ function getProfileImage(post) {
         }
     }
     
+    // Look for images in the content blocks
+    const contentImage = findFirstImageInContent(post.content);
+    if (contentImage) {
+        return `<img src="${contentImage}" alt="Profile" class="post-profile-image">`;
+    }
+    
     // Use a default Brightface-themed image
     return `<img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face" alt="Brightface Profile" class="post-profile-image">`;
+}
+
+function findFirstImageInContent(content) {
+    if (!content || typeof content !== 'object') {
+        return null;
+    }
+    
+    // Check blocks array
+    if (content.blocks && Array.isArray(content.blocks)) {
+        for (const block of content.blocks) {
+            if (block.type === 'image') {
+                const imageUrl = block.image?.file?.url || block.image?.external?.url;
+                if (imageUrl) {
+                    return imageUrl;
+                }
+            }
+        }
+    }
+    
+    // Check children array
+    if (content.children && Array.isArray(content.children)) {
+        for (const child of content.children) {
+            if (child.type === 'image') {
+                const imageUrl = child.image?.file?.url || child.image?.external?.url;
+                if (imageUrl) {
+                    return imageUrl;
+                }
+            }
+        }
+    }
+    
+    return null;
 }
 
 function formatContent(content, excerpt) {
@@ -381,7 +419,14 @@ function formatContent(content, excerpt) {
     // If content has blocks (Notion page structure)
     if (content.blocks && Array.isArray(content.blocks)) {
         let firstParagraphFound = false;
+        let firstImageFound = false;
         return content.blocks.map((block) => {
+            // Skip the first image block (used as profile image)
+            if (!firstImageFound && block.type === 'image') {
+                firstImageFound = true;
+                return ''; // Skip this block
+            }
+            
             // Skip the first paragraph if it matches the excerpt
             if (!firstParagraphFound && excerpt && block.type === 'paragraph') {
                 const paragraphText = extractRichText(block.paragraph?.rich_text || []);
@@ -398,7 +443,14 @@ function formatContent(content, excerpt) {
     // If content has children (Notion page children)
     if (content.children && Array.isArray(content.children)) {
         let firstParagraphFound = false;
+        let firstImageFound = false;
         return content.children.map((child) => {
+            // Skip the first image block (used as profile image)
+            if (!firstImageFound && child.type === 'image') {
+                firstImageFound = true;
+                return ''; // Skip this block
+            }
+            
             // Skip the first paragraph if it matches the excerpt
             if (!firstParagraphFound && excerpt && child.type === 'paragraph') {
                 const paragraphText = extractRichText(child.paragraph?.rich_text || []);
