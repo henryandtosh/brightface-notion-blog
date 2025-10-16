@@ -314,13 +314,16 @@ function formatContent(content, excerpt) {
     
     // If content has blocks (Notion page structure)
     if (content.blocks && Array.isArray(content.blocks)) {
-        return content.blocks.map((block, index) => {
+        let firstParagraphFound = false;
+        return content.blocks.map((block) => {
             // Skip the first paragraph if it matches the excerpt
-            if (index === 0 && excerpt && block.type === 'paragraph') {
+            if (!firstParagraphFound && excerpt && block.type === 'paragraph') {
                 const paragraphText = extractRichText(block.paragraph?.rich_text || []);
                 if (paragraphText && paragraphText.trim() === excerpt.trim()) {
+                    firstParagraphFound = true;
                     return ''; // Skip this block
                 }
+                firstParagraphFound = true;
             }
             return formatNotionBlock(block);
         }).join('');
@@ -328,13 +331,16 @@ function formatContent(content, excerpt) {
     
     // If content has children (Notion page children)
     if (content.children && Array.isArray(content.children)) {
-        return content.children.map((child, index) => {
+        let firstParagraphFound = false;
+        return content.children.map((child) => {
             // Skip the first paragraph if it matches the excerpt
-            if (index === 0 && excerpt && child.type === 'paragraph') {
+            if (!firstParagraphFound && excerpt && child.type === 'paragraph') {
                 const paragraphText = extractRichText(child.paragraph?.rich_text || []);
                 if (paragraphText && paragraphText.trim() === excerpt.trim()) {
+                    firstParagraphFound = true;
                     return ''; // Skip this block
                 }
+                firstParagraphFound = true;
             }
             return formatNotionBlock(child);
         }).join('');
