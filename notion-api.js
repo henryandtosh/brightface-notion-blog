@@ -16,14 +16,9 @@ class NotionBlogAPI {
      */
     async getPublishedPosts() {
         try {
+            // Temporarily get all posts to debug status issues
             const response = await this.notion.databases.query({
                 database_id: this.databaseId,
-                filter: {
-                    property: 'Status',
-                    select: {
-                        equals: 'Published'
-                    }
-                },
                 sorts: [
                     {
                         property: 'Publish Date',
@@ -31,8 +26,21 @@ class NotionBlogAPI {
                     }
                 ]
             });
-
-            return await this.formatPosts(response.results);
+            
+            console.log('All posts found:', response.results.length);
+            response.results.forEach(post => {
+                const status = this.getPropertyValue(post.properties.Status, 'select');
+                console.log(`Post: "${this.getPropertyValue(post.properties.Name, 'title')}" - Status: "${status}"`);
+            });
+            
+            // Filter for published posts
+            const publishedPosts = response.results.filter(post => {
+                const status = this.getPropertyValue(post.properties.Status, 'select');
+                return status === 'Published';
+            });
+            
+            console.log('Published posts:', publishedPosts.length);
+            return await this.formatPosts(publishedPosts);
         } catch (error) {
             console.error('Error fetching posts:', error);
             return [];
