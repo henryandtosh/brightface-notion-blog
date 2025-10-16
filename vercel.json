@@ -25,7 +25,10 @@
   "routes": [
     {
       "src": "/",
-      "dest": "/blog"
+      "status": 302,
+      "headers": {
+        "Location": "/blog"
+      }
     },
     {
       "src": "/api/demo",
