@@ -30,13 +30,14 @@ class NotionBlogAPI {
             console.log('All posts found:', response.results.length);
             response.results.forEach(post => {
                 const status = this.getPropertyValue(post.properties.Status, 'select');
-                console.log(`Post: "${this.getPropertyValue(post.properties.Name, 'title')}" - Status: "${status}"`);
+                const published = this.getPropertyValue(post.properties.Published, 'checkbox');
+                console.log(`Post: "${this.getPropertyValue(post.properties.Name, 'title')}" - Status: "${status}" - Published: ${published}`);
             });
             
-            // Filter for published posts
+            // Filter for published posts using the Published checkbox
             const publishedPosts = response.results.filter(post => {
-                const status = this.getPropertyValue(post.properties.Status, 'select');
-                return status === 'Published';
+                const published = this.getPropertyValue(post.properties.Published, 'checkbox');
+                return published === true;
             });
             
             console.log('Published posts:', publishedPosts.length);
