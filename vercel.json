@@ -16,6 +16,10 @@
     {
       "src": "api/post.js",
       "use": "@vercel/node"
+    },
+    {
+      "src": "api/automated-content-generator.py",
+      "use": "@vercel/python"
     }
   ],
   "routes": [
@@ -32,12 +36,22 @@
       "dest": "/api/post.js"
     },
     {
+      "src": "/api/automated-content-generator",
+      "dest": "/api/automated-content-generator.py"
+    },
+    {
       "src": "/api/(.*)",
       "dest": "/api/index.js"
     },
     {
       "src": "/(.*)",
       "dest": "/api/index.js"
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/automated-content-generator",
+      "schedule": "0 11 * * 1,4"
     }
   ]
 }

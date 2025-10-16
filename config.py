@@ -71,7 +71,8 @@ class Config:
         """Validate that all required configuration is present"""
         required_vars = [
             'OPENAI_API_KEY',
-            'GOOGLE_SHEETS_ID'
+            'NOTION_API_KEY',
+            'NOTION_DB_ID'
         ]
         
         missing_vars = []
