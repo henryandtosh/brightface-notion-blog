@@ -12,6 +12,10 @@
     {
       "src": "api/blog.js",
       "use": "@vercel/node"
+    },
+    {
+      "src": "api/post.js",
+      "use": "@vercel/node"
     }
   ],
   "routes": [
@@ -22,6 +26,10 @@
     {
       "src": "/blog",
       "dest": "/api/blog.js"
+    },
+    {
+      "src": "/post",
+      "dest": "/api/post.js"
     },
     {
       "src": "/api/(.*)",

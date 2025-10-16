@@ -1,0 +1,341 @@
+const fs = require('fs');
+const path = require('path');
+
+module.exports = async (req, res) => {
+    const slug = req.query.slug || req.url.split('/').pop();
+    
+    if (!slug) {
+        res.status(400).send('Slug parameter required');
+        return;
+    }
+    
+    try {
+        // Fetch the post data from our API
+        const apiResponse = await fetch(`https://contentengine-blond.vercel.app/api/blog/posts/${slug}`);
+        const data = await apiResponse.json();
+        
+        if (!data.success) {
+            res.status(404).send(`
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Post Not Found - Brightface Blog</title>
+                    <style>
+                        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; text-align: center; padding: 2rem; }
+                        .error { color: #dc2626; font-size: 1.5rem; margin-bottom: 1rem; }
+                        .back-link { color: #2563eb; text-decoration: none; }
+                    </style>
+                </head>
+                <body>
+                    <div class="error">Post not found</div>
+                    <a href="/blog" class="back-link">← Back to Blog</a>
+                </body>
+                </html>
+            `);
+            return;
+        }
+        
+        const post = data.data;
+        
+        // Generate HTML for the individual post
+        const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${escapeHtml(post.title)} - Brightface Blog</title>
+    <meta name="description" content="${escapeHtml(post.excerpt || post.title)}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f8f9fa;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 1rem 0;
+        }
+        
+        .back-link {
+            display: inline-block;
+            color: #2563eb;
+            text-decoration: none;
+            margin-bottom: 2rem;
+            font-weight: 500;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        .post {
+            background: white;
+            border-radius: 12px;
+            padding: 3rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .post-title {
+            font-size: 2.5rem;
+            color: #1f2937;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+        }
+        
+        .post-meta {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            color: #6b7280;
+            font-size: 0.9rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .post-excerpt {
+            color: #4b5563;
+            font-size: 1.2rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+            font-style: italic;
+            padding: 1rem;
+            background: #f9fafb;
+            border-radius: 8px;
+            border-left: 4px solid #2563eb;
+        }
+        
+        .post-content {
+            color: #374151;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 2rem;
+        }
+        
+        .post-content h1, .post-content h2, .post-content h3 {
+            color: #1f2937;
+            margin: 2rem 0 1rem 0;
+        }
+        
+        .post-content h1 { font-size: 2rem; }
+        .post-content h2 { font-size: 1.5rem; }
+        .post-content h3 { font-size: 1.25rem; }
+        
+        .post-content p {
+            margin-bottom: 1rem;
+        }
+        
+        .post-content ul, .post-content ol {
+            margin: 1rem 0 1rem 2rem;
+        }
+        
+        .post-content li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .post-content blockquote {
+            border-left: 4px solid #2563eb;
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            background: #f9fafb;
+            font-style: italic;
+        }
+        
+        .post-content code {
+            background: #f3f4f6;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.9rem;
+        }
+        
+        .post-content pre {
+            background: #1f2937;
+            color: #f9fafb;
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+        }
+        
+        .post-content pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+        
+        .post-tags {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .tag {
+            background: #e5e7eb;
+            color: #374151;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding: 2rem;
+            color: #6b7280;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .post {
+                padding: 2rem 1.5rem;
+            }
+            
+            .post-title {
+                font-size: 2rem;
+            }
+            
+            .post-meta {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="/blog" class="back-link">← Back to Blog</a>
+        </div>
+        
+        <article class="post">
+            <h1 class="post-title">${escapeHtml(post.title)}</h1>
+            
+            <div class="post-meta">
+                <span>📅 ${formatDate(post.publishDate || post.createdAt)}</span>
+                ${post.author ? `<span>👤 ${escapeHtml(post.author)}</span>` : ''}
+                <span>🕒 ${formatTime(post.createdAt)}</span>
+            </div>
+            
+            ${post.excerpt ? `<div class="post-excerpt">${escapeHtml(post.excerpt)}</div>` : ''}
+            
+            <div class="post-content">
+                ${formatContent(post.content)}
+            </div>
+            
+            ${post.tags && post.tags.length > 0 ? `
+                <div class="post-tags">
+                    ${post.tags.map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('')}
+                </div>
+            ` : ''}
+        </article>
+        
+        <div class="footer">
+            <p>Powered by Notion API • Built with ❤️</p>
+        </div>
+    </div>
+</body>
+</html>
+        `;
+        
+        res.setHeader('Content-Type', 'text/html');
+        res.status(200).send(html);
+        
+    } catch (error) {
+        console.error('Error fetching post:', error);
+        res.status(500).send('Error loading post');
+    }
+};
+
+function escapeHtml(text) {
+    if (!text) return '';
+    return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function formatDate(dateString) {
+    if (!dateString) return 'No date';
+    
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+}
+
+function formatTime(dateString) {
+    if (!dateString) return '';
+    
+    const date = new Date(dateString);
+    return date.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
+function formatContent(content) {
+    if (!content || typeof content !== 'object') {
+        return '<p>Content not available</p>';
+    }
+    
+    // This is a basic formatter - you might want to enhance this based on your Notion content structure
+    if (content.text) {
+        return `<p>${escapeHtml(content.text)}</p>`;
+    }
+    
+    if (content.blocks) {
+        return content.blocks.map(block => {
+            switch (block.type) {
+                case 'paragraph':
+                    return `<p>${escapeHtml(block.text || '')}</p>`;
+                case 'heading_1':
+                    return `<h1>${escapeHtml(block.text || '')}</h1>`;
+                case 'heading_2':
+                    return `<h2>${escapeHtml(block.text || '')}</h2>`;
+                case 'heading_3':
+                    return `<h3>${escapeHtml(block.text || '')}</h3>`;
+                case 'bulleted_list_item':
+                    return `<li>${escapeHtml(block.text || '')}</li>`;
+                case 'numbered_list_item':
+                    return `<li>${escapeHtml(block.text || '')}</li>`;
+                case 'quote':
+                    return `<blockquote>${escapeHtml(block.text || '')}</blockquote>`;
+                case 'code':
+                    return `<pre><code>${escapeHtml(block.text || '')}</code></pre>`;
+                default:
+                    return `<p>${escapeHtml(block.text || '')}</p>`;
+            }
+        }).join('');
+    }
+    
+    return '<p>Content formatting not available</p>';
+}
