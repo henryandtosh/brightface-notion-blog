@@ -3,6 +3,6 @@
  * This file handles Vercel's serverless function requirements
  */
 
-const app = require('./server');
+const app = require('../server');
 
 module.exports = app;
