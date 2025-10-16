@@ -16,9 +16,14 @@ class NotionBlogAPI {
      */
     async getPublishedPosts() {
         try {
-            // Temporarily get all posts to debug status issues
             const response = await this.notion.databases.query({
                 database_id: this.databaseId,
+                filter: {
+                    property: 'Published',
+                    checkbox: {
+                        equals: true
+                    }
+                },
                 sorts: [
                     {
                         property: 'Publish Date',
@@ -26,22 +31,7 @@ class NotionBlogAPI {
                     }
                 ]
             });
-            
-            console.log('All posts found:', response.results.length);
-            response.results.forEach(post => {
-                const status = this.getPropertyValue(post.properties.Status, 'select');
-                const published = this.getPropertyValue(post.properties.Published, 'checkbox');
-                console.log(`Post: "${this.getPropertyValue(post.properties.Name, 'title')}" - Status: "${status}" - Published: ${published}`);
-            });
-            
-            // Filter for published posts using the Published checkbox
-            const publishedPosts = response.results.filter(post => {
-                const published = this.getPropertyValue(post.properties.Published, 'checkbox');
-                return published === true;
-            });
-            
-            console.log('Published posts:', publishedPosts.length);
-            return await this.formatPosts(publishedPosts);
+            return await this.formatPosts(response.results);
         } catch (error) {
             console.error('Error fetching posts:', error);
             return [];
